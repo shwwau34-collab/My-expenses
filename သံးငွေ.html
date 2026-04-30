@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>တစ်နေ့တာ အသုံးပြုစရိတ် - Smart Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap');
+        body { font-family: 'Pyidaungsu', sans-serif; background-color: #f8fafc; }
+        .gradient-bg { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); }
+        .grid-table { border-collapse: collapse; width: 100%; border: 1px solid #cbd5e1; }
+        .grid-table th { border: 1px solid #cbd5e1; background-color: #f1f5f9; padding: 10px 5px; font-size: 11px; color: #475569; font-weight: bold; }
+        .grid-table td { border: 1px solid #cbd5e1; padding: 12px 8px; font-size: 13px; color: #1e293b; background-color: white; }
+        @media print { .no-print { display: none !important; } .print-header { display: block !important; text-align: center; margin-bottom: 15px; } }
+        .print-header { display: none; }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="max-w-md mx-auto">
+        <div class="print-header">
+            <h1 id="pdfTitle" class="text-xl font-bold"></h1>
+            <p id="pdfDateInfo" class="text-xs mt-1 text-slate-500"></p>
+        </div>
+
+        <div class="gradient-bg p-6 text-white shadow-xl mb-6 no-print" style="border-radius: 1.5rem;">
+            <div class="flex justify-between items-center mb-6">
+                <input type="text" id="appTitle" oninput="saveData()" class="bg-transparent font-bold text-lg outline-none border-b border-white/20 w-2/3" value="တစ်နေ့တာ အသုံးပြုစရိတ်">
+                <span id="displayDate" class="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold"></span>
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] opacity-70 font-bold mb-1 uppercase tracking-widest">လက်ဝယ်ရှိ စုစုပေါင်းငွေ</p>
+                <div class="flex items-center justify-center">
+                    <span class="text-lg font-bold mr-2">Ks</span>
+                    <input type="number" id="totalBudget" oninput="saveData()" class="bg-white/10 text-3xl font-black w-44 text-center outline-none border-b-2 border-white/40 rounded-lg p-1" value="80000">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 shadow-sm border border-slate-200 mb-6 no-print" style="border-radius: 1.2rem;">
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <input type="date" id="manualDate" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+                <input type="time" id="manualTime" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+            </div>
+            <textarea id="smartInput" rows="4" placeholder="ဥပမာ - ထမင်း3000ကော်ဖီ1500" class="w-full p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl font-bold outline-none text-sm focus:border-indigo-400 mt-1"></textarea>
+            <p class="text-[10px] text-indigo-600 mt-2 font-bold italic">"-ဖိုး" ကို အလိုအလျောက် ပေါင်းထည့်ပေးပါမည်။</p>
+            <button onclick="processSmartInput()" class="w-full py-4 mt-4 gradient-bg text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all">စာရင်းသွင်းမည်</button>
+        </div>
+
+        <div class="bg-white shadow-sm border border-slate-200 overflow-hidden mb-6 rounded-xl">
+            <table class="grid-table">
+                <thead>
+                    <tr>
+                        <th class="w-24">ရက်စွဲ/အချိန်</th>
+                        <th class="text-left">အကြောင်းအရာ</th>
+                        <th class="text-right w-24">သုံးငွေ</th>
+                        <th class="w-8 no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+            
+            <div class="p-5 bg-slate-50 space-y-2 border-t border-slate-200">
+                <div class="flex justify-between text-xs font-bold text-red-500">
+                    <span class="uppercase">စုစုပေါင်း သုံးပြီးငွေ</span>
+                    <span id="totalSpent">0 ကျပ်</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                    <span class="text-[10px] font-black text-indigo-500 uppercase tracking-tighter">လက်ကျန်ငွေ</span>
+                    <span id="remainingBalance" class="text-2xl font-black text-indigo-700">0 ကျပ်</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-3 no-print pb-10">
+            <button onclick="window.print()" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs shadow-md">PDF ထုတ်မည်</button>
+            <button onclick="clearAll()" class="flex-1 py-3 bg-white text-red-500 border border-red-100 rounded-xl font-bold text-xs">အားလုံးဖျက်မည်</button>
+        </div>
+    </div>
+
+    <script>
+        let records = JSON.parse(localStorage.getItem('smart_expense_v10')) || [];
+
+        window.onload = () => {
+            document.getElementById('appTitle').value = localStorage.getItem('smart_title_v10') || "တစ်နေ့တာ အသုံးပြုစရိတ်";
+            document.getElementById('totalBudget').value = localStorage.getItem('smart_budget_v10') || 80000;
+            const now = new Date();
+            document.getElementById('manualDate').value = now.toISOString().split('T')[0];
+            document.getElementById('manualTime').value = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('displayDate').innerText = now.toLocaleDateString();
+            renderTable();
+        };
+
+        function processSmartInput() {
+            const input = document.getElementById('smartInput').value;
+            const dInput = document.getElementById('manualDate').value;
+            const tInput = document.getElementById('manualTime').value;
+            if (!input.trim()) return;
+
+            const d = new Date(dInput);
+            const dateStr = d.getDate() + "/" + (d.getMonth() + 1);
+
+            const regex = /([^\d]+)(\d+)/g;
+            let match;
+            let found = false;
+
+            while ((match = regex.exec(input)) !== null) {
+                let name = match[1].trim().replace(/[၊,]/g, "");
+                const price = parseFloat(match[2]);
+                
+                if (name && !name.endsWith("ဖိုး")) {
+                    name = name + "ဖိုး";
+                }
+                
+                if (name && price >= 0) {
+                    records.unshift({ id: Date.now() + Math.random(), date: dateStr, time: tInput, name, price });
+                    found = true;
+                }
+            }
+
+            if(found) {
+                saveData();
+                document.getElementById('smartInput').value = '';
+                renderTable();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('smart_expense_v10', JSON.stringify(records));
+            localStorage.setItem('smart_budget_v10', document.getElementById('totalBudget').value);
+            localStorage.setItem('smart_title_v10', document.getElementById('appTitle').value);
+            document.getElementById('pdfTitle').innerText = document.getElementById('appTitle').value;
+            document.getElementById('pdfDateInfo').innerText = "ရက်စွဲ - " + new Date().toLocaleDateString();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            let totalSpent = 0;
+
+            records.forEach(item => {
+                totalSpent += item.price;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-slate-400 font-bold text-[10px] text-center">${item.date}<br>${item.time}</td>
+                        <td class="font-bold text-slate-700 text-sm">${item.name}</td>
+                        <td class="text-right font-bold text-slate-800">${item.price.toLocaleString()}</td>
+                        <td class="text-center no-print">
+                            <button onclick="deleteItem(${item.id})" class="text-slate-200 hover:text-red-500"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        </td>
+                    </tr>`;
+            });
+
+            document.getElementById('totalSpent').innerText = totalSpent.toLocaleString() + " ကျပ်";
+            const budgetVal = parseFloat(document.getElementById('totalBudget').value) || 0;
+            document.getElementById('remainingBalance').innerText = (budgetVal - totalSpent).toLocaleString() + " ကျပ်";
+            saveData();
+        }
+
+        function deleteItem(id) {
+            records = records.filter(i => i.id !== id);
+            renderTable();
+        }
+
+        function clearAll() {
+            if(confirm("ဒေတာအားလုံးကို အမြဲတမ်းဖျက်မှာလား?")) {
+                records = []; localStorage.removeItem('smart_expense_v10'); renderTable();
+            }
+        }
+    </script>
+</body>
+</html>
