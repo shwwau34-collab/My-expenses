@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Expense Tracker with Emoji</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap');
+        body { font-family: 'Pyidaungsu', sans-serif; background-color: #f8fafc; }
+        .gradient-bg { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); }
+        .saving-card { background: linear-gradient(135deg, #059669 0%, #065f46 100%); }
+        .grid-table { border-collapse: collapse; width: 100%; border: 1px solid #cbd5e1; }
+        .grid-table th { border: 1px solid #cbd5e1; background-color: #f1f5f9; padding: 10px 5px; font-size: 11px; color: #475569; }
+        .grid-table td { border: 1px solid #cbd5e1; padding: 12px 8px; font-size: 13px; color: #1e293b; background-color: white; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="max-w-md mx-auto">
+        <div class="gradient-bg p-5 text-white shadow-xl mb-4 no-print" style="border-radius: 1.5rem;">
+            <div class="flex justify-between items-center mb-4">
+                <input type="text" id="appTitle" oninput="saveData()" class="bg-transparent font-bold text-lg outline-none border-b border-white/20 w-2/3" value="တစ်နေ့တာ အသုံးပြုစရိတ်">
+                <span id="displayDate" class="text-[10px] font-bold opacity-80"></span>
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] opacity-70 font-bold mb-1 uppercase tracking-widest">လက်ဝယ်ရှိ စုစုပေါင်းငွေ</p>
+                <div class="flex items-center justify-center">
+                    <span class="text-lg font-bold mr-2">Ks</span>
+                    <input type="number" id="totalBudget" oninput="saveData(); renderTable();" class="bg-white/10 text-3xl font-black w-40 text-center outline-none border-b-2 border-white/40 rounded-lg p-1" value="80000">
+                </div>
+            </div>
+        </div>
+
+        <div class="saving-card p-5 text-white shadow-lg mb-6 no-print" style="border-radius: 1.2rem;">
+            <p class="text-[10px] font-bold opacity-80 uppercase mb-2"><i class="fa-solid fa-piggy-bank mr-1"></i> ဝယ်ချင်တာအတွက် စုငွေထည့်ရန်</p>
+            <div class="flex gap-2">
+                <input type="number" id="addSavingInput" placeholder="ပမာဏ" class="flex-1 bg-white/20 text-xl font-black p-2 rounded-xl outline-none border border-white/30 text-center placeholder:text-white/40">
+                <button onclick="addAsSaving()" class="bg-white text-emerald-700 px-6 rounded-xl font-bold active:scale-95 transition-all">စုမည်</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 shadow-sm border border-slate-200 mb-6 no-print" style="border-radius: 1.2rem;">
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <input type="date" id="manualDate" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+                <input type="time" id="manualTime" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+            </div>
+            <textarea id="smartInput" rows="3" placeholder="ဥပမာ - ထမင်း3000မုန့်1500" class="w-full p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl font-bold outline-none text-sm focus:border-indigo-400 mt-1"></textarea>
+            <button onclick="processSmartInput()" class="w-full py-4 mt-4 gradient-bg text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all">စာရင်းသွင်းမည်</button>
+        </div>
+
+        <div class="bg-white shadow-sm border border-slate-200 overflow-hidden mb-6 rounded-xl">
+            <table class="grid-table">
+                <thead>
+                    <tr>
+                        <th class="w-24 text-center">ရက်စွဲ/အချိန်</th>
+                        <th class="text-left">အကြောင်းအရာ</th>
+                        <th class="text-right w-24">သုံးငွေ</th>
+                        <th class="w-8 no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+            
+            <div class="p-5 bg-slate-50 space-y-2 border-t border-slate-200">
+                <div class="flex justify-between text-xs font-bold text-red-500">
+                    <span>စုစုပေါင်း သုံးပြီး/စုပြီး</span>
+                    <span id="totalSpent">0 ကျပ်</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                    <span class="text-[10px] font-black text-indigo-500 uppercase tracking-tighter">လက်ကျန်ငွေ</span>
+                    <span id="remainingBalance" class="text-2xl font-black text-indigo-700">0 ကျပ်</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-3 no-print pb-10">
+            <button onclick="window.print()" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs">PDF ထုတ်မည်</button>
+            <button onclick="clearAll()" class="flex-1 py-3 bg-white text-red-500 border border-red-100 rounded-xl font-bold text-xs">အားလုံးဖျက်မည်</button>
+        </div>
+    </div>
+
+    <script>
+        let records = JSON.parse(localStorage.getItem('emoji_expense_v13')) || [];
+
+        const emojiMap = {
+            "ထမင်း": "🍚",
+            "ဟင်း": "🍲",
+            "မုန့်": "🍰",
+            "ကော်ဖီ": "☕",
+            "ရေ": "🥤",
+            "ဖုန်း": "📱",
+            "ဆေးလိပ်": "🚬",
+            "ကား": "🚌",
+            "ဆိုင်ကယ်": "🏍️",
+            "လက်ဖက်ရည်": "🍵",
+            "သစ်သီး": "🍎",
+            "အသား": "🥩",
+            "ခေါက်ဆွဲ": "🍜",
+            "အင်္ကျီ": "👕",
+            "ဖိနပ်": "👟",
+            "လက်ဆောင်": "🎁"
+        };
+
+        window.onload = () => {
+            document.getElementById('appTitle').value = localStorage.getItem('emoji_title_v13') || "တစ်နေ့တာ အသုံးပြုစရိတ်";
+            document.getElementById('totalBudget').value = localStorage.getItem('emoji_budget_v13') || 80000;
+            const now = new Date();
+            document.getElementById('manualDate').value = now.toISOString().split('T')[0];
+            document.getElementById('manualTime').value = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('displayDate').innerText = now.toLocaleDateString();
+            renderTable();
+        };
+
+        function getEmoji(name) {
+            for (let key in emojiMap) {
+                if (name.includes(key)) return emojiMap[key] + " ";
+            }
+            return "📝 "; // မပါရင် စာအုပ်ပုံလေးပြမယ်
+        }
+
+        function addAsSaving() {
+            const amount = parseFloat(document.getElementById('addSavingInput').value);
+            if (!amount || amount <= 0) return;
+            const d = new Date(document.getElementById('manualDate').value);
+            const dateStr = d.getDate() + "/" + (d.getMonth() + 1);
+            records.unshift({ 
+                id: Date.now(), 
+                date: dateStr, 
+                time: document.getElementById('manualTime').value, 
+                name: "💰 စုဘူးထဲသို့", 
+                price: amount,
+                isSaving: true 
+            });
+            document.getElementById('addSavingInput').value = '';
+            saveData(); renderTable();
+        }
+
+        function processSmartInput() {
+            const input = document.getElementById('smartInput').value;
+            if (!input.trim()) return;
+            const d = new Date(document.getElementById('manualDate').value);
+            const dateStr = d.getDate() + "/" + (d.getMonth() + 1);
+            const timeVal = document.getElementById('manualTime').value;
+
+            const regex = /([^\d]+)(\d+)/g;
+            let match;
+            while ((match = regex.exec(input)) !== null) {
+                let name = match[1].trim().replace(/[၊,]/g, "");
+                const price = parseFloat(match[2]);
+                if (name && !name.endsWith("ဖိုး")) name += "ဖိုး";
+                if (name && price >= 0) {
+                    const emoji = getEmoji(name);
+                    records.unshift({ id: Date.now() + Math.random(), date: dateStr, time: timeVal, name: emoji + name, price });
+                }
+            }
+            saveData(); document.getElementById('smartInput').value = ''; renderTable();
+        }
+
+        function saveData() {
+            localStorage.setItem('emoji_expense_v13', JSON.stringify(records));
+            localStorage.setItem('emoji_budget_v13', document.getElementById('totalBudget').value);
+            localStorage.setItem('emoji_title_v13', document.getElementById('appTitle').value);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            let totalSpent = 0;
+            records.forEach(item => {
+                totalSpent += item.price;
+                const rowClass = item.isSaving ? "bg-emerald-50" : "";
+                tbody.innerHTML += `<tr class="${rowClass}">
+                    <td class="text-slate-400 font-bold text-[10px] text-center">${item.date}<br>${item.time}</td>
+                    <td class="font-bold ${item.isSaving ? 'text-emerald-700' : 'text-slate-700'} text-sm">${item.name}</td>
+                    <td class="text-right font-bold text-slate-800">${item.price.toLocaleString()}</td>
+                    <td class="text-center no-print"><button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can text-xs"></i></button></td>
+                </tr>`;
+            });
+            document.getElementById('totalSpent').innerText = totalSpent.toLocaleString() + " ကျပ်";
+            const budgetVal = parseFloat(document.getElementById('totalBudget').value) || 0;
+            document.getElementById('remainingBalance').innerText = (budgetVal - totalSpent).toLocaleString() + " ကျပ်";
+        }
+
+        function deleteItem(id) {
+            records = records.filter(i => i.id !== id);
+            saveData(); renderTable();
+        }
+
+        function clearAll() {
+            if(confirm("အားလုံးဖျက်မှာလား?")) {
+                records = []; localStorage.clear(); location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
