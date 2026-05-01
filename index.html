@@ -3,72 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daily Expense Tracker</title>
+    <title>Accordion Style Expense Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&family=Zeyar:wght@400;700&display=swap');
         body { font-family: 'Pyidaungsu', sans-serif; background-color: #f8fafc; }
-        .app-main-title { font-family: 'Zeyar', serif; font-size: 2rem; font-weight: 800; text-align: center; background: linear-gradient(to right, #4f46e5, #ec4899, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding: 10px; cursor: pointer; outline: none; }
-        .header-main { background: white; border-radius: 0 0 2.5rem 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding-bottom: 30px; }
-        .history-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 16px; }
-        .history-content { display: none; padding: 0 1.5rem 1.5rem 1.5rem; border-top: 1px solid #f1f5f9; }
+        .app-title { font-family: 'Zeyar', serif; background: linear-gradient(to right, #ffd700, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-main { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 0 0 2rem 2rem; }
+        
+        /* Excel Grid Style */
+        .excel-table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        .excel-table th { border: 1px solid #cbd5e1; background: #f1f5f9; padding: 8px 4px; font-size: 10px; color: #64748b; }
+        .excel-table td { border: 1px solid #cbd5e1; padding: 10px 8px; font-size: 13px; color: #334155; }
+        
+        .history-card { background: white; border-radius: 1.5rem; transition: all 0.3s ease; border: 1px solid #e2e8f0; overflow: hidden; }
+        .history-content { display: none; padding: 0 1rem 1rem 1rem; border-top: 1px solid #f1f5f9; }
         .active-history .history-content { display: block; }
-        .active-history { border-color: #6366f1; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.12); }
-        .excel-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .excel-table th { border: 1px solid #e2e8f0; background: #f8fafc; padding: 10px; font-size: 11px; color: #64748b; }
-        .excel-table td { border: 1px solid #e2e8f0; padding: 12px 10px; font-size: 14px; color: #1e293b; font-weight: 700; }
-        .btn-print { background-color: #f1f5f9; color: #475569; font-weight: 800; font-size: 12px; border-radius: 15px; padding: 14px; width: 48%; text-align: center; }
-        .btn-clear { background-color: #fff1f2; color: #e11d48; font-weight: 800; font-size: 12px; border-radius: 15px; padding: 14px; width: 48%; text-align: center; }
-        .total-box-pink { background-color: #fff1f2; color: #e11d48; font-weight: 900; border-radius: 15px; padding: 18px; text-align: right; margin-top: 15px; border: 1px solid #ffe4e6; font-size: 15px; }
-        @media print { .no-print { display: none !important; } .history-content { display: block !important; } }
+        .active-history { border-color: #6366f1; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        .total-box { background: #fff1f2; border-radius: 0.75rem; padding: 10px; color: #e11d48; font-weight: 800; font-size: 14px; text-align: right; margin-top: 8px; }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body class="pb-20">
 
     <div class="max-w-md mx-auto">
-        <div class="header-main no-print">
-            <h1 id="editableTitle" contenteditable="true" onblur="saveTitle()" class="app-main-title">နေ့စဉ်မှတ်တမ်း</h1>
-            
-            <div class="px-6">
-                <div class="bg-indigo-600 p-6 rounded-[2.2rem] text-white shadow-xl shadow-indigo-100">
-                    <p class="text-[10px] font-bold opacity-70 uppercase tracking-widest mb-1 text-center">လက်ဝယ်ရှိ စုစုပေါင်းငွေ</p>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="text-xl font-bold text-yellow-300">Ks</span>
-                        <input type="number" id="globalWallet" oninput="saveSettings()" class="bg-transparent text-4xl font-black w-full text-center outline-none" value="0">
-                    </div>
+        <div class="header-main p-8 text-white no-print text-center">
+            <h1 id="appTitle" contenteditable="true" onblur="saveSettings()" class="app-title text-2xl font-bold mb-6">နေ့စဉ်ဝင်ငွေထွက်ငွေ မှတ်တမ်း</h1>
+            <div class="bg-white/10 p-5 rounded-3xl backdrop-blur-sm border border-white/10">
+                <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">လက်ဝယ်ရှိ စုစုပေါင်းငွေ</p>
+                <div class="flex items-center justify-center gap-2">
+                    <span class="text-xl font-bold text-yellow-400">Ks</span>
+                    <input type="number" id="globalWallet" oninput="saveSettings()" class="bg-transparent text-4xl font-black w-full text-center outline-none" placeholder="0">
                 </div>
             </div>
         </div>
 
-        <div class="p-5">
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-4 no-print mb-8">
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-black text-slate-400 uppercase">ယနေ့သုံးစရိတ် ရိုက်ရန်</span>
+        <div class="p-4 space-y-6">
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 no-print space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">ယနေ့အတွက် စာရင်းသွင်းရန်</span>
                     <span class="text-xs font-bold text-indigo-600" id="todayDateLabel"></span>
                 </div>
-                <textarea id="smartInput" rows="2" placeholder="ဥပမာ - ထမင်း 3000 ဆီ 5000" class="w-full p-4 bg-slate-50 border border-slate-50 rounded-2xl font-bold outline-none text-sm"></textarea>
-                <button onclick="addExpense()" class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase shadow-lg active:scale-95">စာရင်းသွင်းမည်</button>
+                <textarea id="smartInput" rows="2" placeholder="ဥပမာ - ထမင်း 3000 ဆီ 5000" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold outline-none text-sm"></textarea>
+                <button onclick="addExpense()" class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase shadow-md active:scale-95 transition-all">စာရင်းသွင်းမည်</button>
             </div>
 
-            <div id="historyContainer" class="space-y-4"></div>
+            <div class="space-y-4">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">ရက်စွဲအလိုက် မှတ်တမ်းများ</h3>
+                <div id="historyContainer" class="space-y-3"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('expense_final_v5')) || {};
-        let wallet = parseFloat(localStorage.getItem('wallet_final_v5')) || 0;
+        let db = JSON.parse(localStorage.getItem('accordion_db_v20')) || {};
+        let wallet = parseFloat(localStorage.getItem('accordion_wallet_v20')) || 0;
         let today = new Date().toISOString().split('T')[0];
-        const emojiMap = { "စု": "💰", "ထမင်း": "🍚", "ဟင်း": "🍲", "မုန့်": "🍰", "ဆီ": "⛽", "ဖုန်း": "📱", "ကား": "🚌", "ဆေး": "💊", "လက်ဆောင်": "🎁" };
+
+        const emojis = { "ထမင်း": "🍚", "ဟင်း": "🍲", "မုန့်": "🍰", "ဆီ": "⛽", "ဖုန်း": "📱", "စု": "💰", "ကား": "🚌" };
 
         window.onload = () => {
-            document.getElementById('editableTitle').innerText = localStorage.getItem('title_final_v5') || "နေ့စဉ်မှတ်တမ်း";
+            document.getElementById('appTitle').innerText = localStorage.getItem('accordion_title_v20') || "နေ့စဉ်ဝင်ငွေထွက်ငွေ မှတ်တမ်း";
             document.getElementById('globalWallet').value = wallet;
             document.getElementById('todayDateLabel').innerText = today;
             render();
         };
-
-        function saveTitle() { localStorage.setItem('title_final_v5', document.getElementById('editableTitle').innerText); }
 
         function addExpense() {
             const val = document.getElementById('smartInput').value;
@@ -77,62 +78,115 @@
             const regex = /([^\d]+)(\d+)/g;
             let match;
             if (!db[today]) db[today] = [];
+
             while ((match = regex.exec(val)) !== null) {
                 let name = match[1].trim().replace(/[၊,]/g, "");
                 let price = parseFloat(match[2]);
                 wallet -= price;
-                db[today].unshift({ id: Date.now() + Math.random(), time, name, price });
+                let icon = "📝 ";
+                for (let key in emojis) { if (name.includes(key)) icon = emojis[key] + " "; }
+                db[today].unshift({ id: Date.now() + Math.random(), time, name: icon + name, price });
             }
             document.getElementById('smartInput').value = '';
             save();
         }
 
         function save() {
-            localStorage.setItem('expense_final_v5', JSON.stringify(db));
-            localStorage.setItem('wallet_final_v5', wallet);
+            localStorage.setItem('accordion_db_v20', JSON.stringify(db));
+            localStorage.setItem('accordion_wallet_v20', wallet);
             document.getElementById('globalWallet').value = wallet;
             render();
         }
 
         function saveSettings() {
             wallet = parseFloat(document.getElementById('globalWallet').value) || 0;
-            localStorage.setItem('wallet_final_v5', wallet);
+            localStorage.setItem('accordion_wallet_v20', wallet);
+            localStorage.setItem('accordion_title_v20', document.getElementById('appTitle').innerText);
         }
 
         function render() {
             const container = document.getElementById('historyContainer');
             container.innerHTML = '';
+            
             const allDates = Object.keys(db).sort().reverse();
+
+            if (allDates.length === 0) {
+                container.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">စာရင်းမှတ်တမ်း မရှိသေးပါ။</p>';
+                return;
+            }
+
             allDates.forEach(date => {
                 let daySpent = 0;
+                db[date].forEach(i => daySpent += i.price);
+
                 let rowsHtml = '';
                 db[date].forEach(item => {
-                    daySpent += item.price;
-                    let emoji = "";
-                    for (let key in emojiMap) { if (item.name.includes(key)) emoji = emojiMap[key] + " "; }
-                    rowsHtml += `<tr><td align="center" class="text-slate-400 font-bold text-[10px]">${item.time}</td><td>${emoji}${item.name}</td><td align="right" class="font-black text-slate-900">${item.price.toLocaleString()}</td><td align="center" class="no-print"><button onclick="remove('${date}', ${item.id})" class="text-slate-300">×</button></td></tr>`;
+                    rowsHtml += `
+                        <tr>
+                            <td class="text-center text-slate-400 font-bold text-[9px]">${item.time}</td>
+                            <td class="font-bold text-slate-700">${item.name}</td>
+                            <td class="text-right font-black text-slate-900">${item.price.toLocaleString()}</td>
+                            <td class="text-center no-print"><button onclick="remove('${date}', ${item.id})" class="text-slate-300">&times;</button></td>
+                        </tr>
+                    `;
                 });
+
                 const isToday = (date === today);
+                
                 container.innerHTML += `
                     <div class="history-card ${isToday ? 'active-history' : ''}" id="card-${date}">
-                        <div class="p-6 flex justify-between items-center cursor-pointer" onclick="toggleCard('${date}')">
-                            <div><p class="text-[10px] font-black uppercase ${isToday ? 'text-indigo-600' : 'text-slate-400'}">${isToday ? 'ယနေ့စာရင်း' : date}</p><p class="text-xs font-bold text-slate-600">ကုန်ကျ: <span class="text-red-500">${daySpent.toLocaleString()} Ks</span></p></div>
-                            <i class="fa-solid fa-chevron-down text-slate-300"></i>
+                        <div class="p-5 flex justify-between items-center cursor-pointer" onclick="toggleCard('${date}')">
+                            <div>
+                                <p class="text-[10px] font-black ${isToday ? 'text-indigo-600' : 'text-slate-400'} uppercase">${isToday ? 'ယနေ့ဇယား' : date}</p>
+                                <p class="text-xs font-bold text-slate-600">ကုန်ကျငွေ: <span class="text-red-500">${daySpent.toLocaleString()} Ks</span></p>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-300 transition-transform"></i>
                         </div>
                         <div class="history-content">
-                            <table class="excel-table"><thead><tr><th>အချိန်</th><th>အကြောင်းအရာ</th><th align="right">ပမာဏ</th><th class="no-print"></th></tr></thead><tbody>${rowsHtml}</tbody></table>
-                            <div class="total-box-pink">စုစုပေါင်း: ${daySpent.toLocaleString()} Ks</div>
-                            <div class="flex justify-between mt-5 no-print"><button onclick="window.print()" class="btn-print">PRINT</button><button onclick="clearDay('${date}')" class="btn-clear">ဖျက်မည်</button></div>
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-16">အချိန်</th>
+                                        <th>အကြောင်းအရာ</th>
+                                        <th class="text-right">ပမာဏ</th>
+                                        <th class="w-8 no-print"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rowsHtml}</tbody>
+                            </table>
+                            <div class="total-box">
+                                စုစုပေါင်းကုန်ကျစရိတ်: ${daySpent.toLocaleString()} Ks
+                            </div>
+                            <div class="flex gap-2 mt-4 no-print">
+                                <button onclick="window.print()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase">Print</button>
+                                <button onclick="clearDay('${date}')" class="flex-1 py-2 bg-red-50 text-red-500 rounded-lg text-[9px] font-bold uppercase">ဖျက်မည်</button>
+                            </div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
             });
         }
-        function toggleCard(d) { document.getElementById('card-'+d).classList.toggle('active-history'); }
-        function remove(d, id) { 
-            const item = db[d].find(i => i.id === id);
-            if(item) { wallet += item.price; db[d] = db[d].filter(i => i.id !== id); save(); }
+
+        function toggleCard(date) {
+            const card = document.getElementById(`card-${date}`);
+            card.classList.toggle('active-history');
         }
-        function clearDay(d) { if(confirm("ဖျက်မှာ သေချာလား?")) { db[d].forEach(i => wallet += i.price); db[d] = []; save(); } }
+
+        function remove(date, id) {
+            const item = db[date].find(i => i.id === id);
+            if (item) {
+                wallet += item.price;
+                db[date] = db[date].filter(i => i.id !== id);
+                save();
+            }
+        }
+
+        function clearDay(date) {
+            if (confirm(date + " စာရင်းကို အကုန်ဖျက်မည်လား?")) {
+                db[date] = [];
+                save();
+            }
+        }
     </script>
 </body>
 </html>
